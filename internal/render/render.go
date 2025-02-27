@@ -241,7 +241,7 @@ func (r *Renderer) renderUI(screen *ebiten.Image, gameWorld *world.World) {
 // drawText - вспомогательный метод для отрисовки текста
 func (r *Renderer) drawText(screen *ebiten.Image, message string, x, y int, c color.Color) {
 	// TODO: Реализовать нормальную отрисовку текста с использованием шрифта
-	for i, ch := range message {
+	for i, _ := range message {
 		charImage := ebiten.NewImage(8, 8)
 		charImage.Fill(c)
 

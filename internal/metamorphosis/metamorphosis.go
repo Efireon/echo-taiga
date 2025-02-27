@@ -55,3 +55,9 @@ func (m *Manager) GetEffectsByOrder(order OrderLevel) []Effect {
 	// TODO: реализовать фильтрацию эффектов
 	return nil
 }
+
+// Add to the Manager struct in metamorphosis package
+func (m *Manager) SaveState() error {
+	// Implementation of SaveState
+	return nil
+}

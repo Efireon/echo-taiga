@@ -29,7 +29,7 @@ type Game struct {
 	audioMgr  *audio.Manager
 	fearMgr   *fear.Director
 	symbolMgr *symbols.Manager
-	metamorph *metamorphosis.Manager
+	metamorph *metamorphosis.MetamorphosisManager
 
 	isRunning      bool
 	lastUpdateTime time.Time

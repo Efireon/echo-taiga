@@ -78,12 +78,6 @@ func NewWorld(seed int64, ecsWorld *ecs.World) *World {
 	return world
 }
 
-func createNightCreature(world *ecs.World, position ecs.Vector3, anomalyLevel float64) *ecs.Entity {
-	// Преобразуйте значение здоровья
-	healthComp := ecs.NewHealthComponent(float64(50 + int(anomalyLevel*100)))
-	// Остальной код без изменений
-}
-
 // GetChunkAt возвращает чанк в указанной позиции
 func (w *World) GetChunkAt(x, y int) *Chunk {
 	pos := [2]int{x, y}
@@ -447,7 +441,8 @@ func applyMetamorphEffectToChunk(world *ecs.World, chunk *Chunk, effect *metamor
 				transform := transformComp.(*ecs.TransformComponent)
 
 				// Случайные изменения масштаба и поворота
-				r := rand.New(rand.NewSource(int64(entityID)))
+				eIconv, _ := strconv.ParseInt(string(entityID), 10, 64)
+				r := rand.New(rand.NewSource(eIconv))
 
 				// Изменяем масштаб
 				scaleChange := 0.2 * effect.Intensity * (r.Float64()*2 - 1)

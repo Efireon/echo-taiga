@@ -108,7 +108,7 @@ type ScareEvent struct {
 	EffectRadius      float64      // Radius of effect
 	RequiredSetup     []string     // Required setup steps
 	Cooldown          float64      // Cooldown before similar scare can be used
-	SuccessRating     float64      // How successful was this scare (filled after)
+	SuccessRating     time.Time    // How successful was this scare (filled after)
 	Tags              []string     // Tags describing the scare
 	ExclusionTags     []string     // Tags for scares that shouldn't happen close to this
 	EntityID          ecs.EntityID // Associated entity (if any)
@@ -174,8 +174,8 @@ type ScareOpportunity struct {
 	TensionLevel   int         // Current tension level (0-4)
 }
 
-// FearDirector manages and orchestrates scary events based on player behavior
-type FearDirector struct {
+// Director manages and orchestrates scary events based on player behavior
+type Director struct {
 	world *ecs.World
 
 	// Player tracking
@@ -237,9 +237,9 @@ type FearDirector struct {
 	mutex sync.RWMutex
 }
 
-// NewFearDirector creates a new fear director
-func NewFearDirector(world *ecs.World, savePath string) *FearDirector {
-	return &FearDirector{
+// NewDirector creates a new fear director
+func NewDirector(world *ecs.World, savePath string) *Director {
+	return &Director{
 		world:              world,
 		actionHistory:      make([]PlayerAction, 0, 100),
 		maxHistorySize:     100,
@@ -267,7 +267,7 @@ func NewFearDirector(world *ecs.World, savePath string) *FearDirector {
 }
 
 // Initialize sets up the fear director
-func (fd *FearDirector) Initialize() error {
+func (fd *Director) Initialize() error {
 	// Try to load existing behavior and fear profiles
 	err := fd.LoadProfiles()
 	if err != nil {
@@ -304,13 +304,13 @@ func (fd *FearDirector) Initialize() error {
 }
 
 // RequiredComponents returns components required by this system
-func (fd *FearDirector) RequiredComponents() []ecs.ComponentID {
+func (fd *Director) RequiredComponents() []ecs.ComponentID {
 	// This system doesn't operate on specific components
 	return []ecs.ComponentID{}
 }
 
 // Update is called every frame
-func (fd *FearDirector) Update(deltaTime float64) {
+func (fd *Director) Update(deltaTime float64) {
 	// Track player
 	fd.trackPlayer()
 
@@ -335,7 +335,7 @@ func (fd *FearDirector) Update(deltaTime float64) {
 }
 
 // RecordPlayerAction records a player action for analysis
-func (fd *FearDirector) RecordPlayerAction(action PlayerAction) {
+func (fd *Director) RecordPlayerAction(action PlayerAction) {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -365,7 +365,7 @@ func (fd *FearDirector) RecordPlayerAction(action PlayerAction) {
 }
 
 // GetTensionLevel returns the current tension level
-func (fd *FearDirector) GetTensionLevel() int {
+func (fd *Director) GetTensionLevel() int {
 	fd.mutex.RLock()
 	defer fd.mutex.RUnlock()
 
@@ -373,7 +373,7 @@ func (fd *FearDirector) GetTensionLevel() int {
 }
 
 // GetTensionName returns the name of the current tension level
-func (fd *FearDirector) GetTensionName() string {
+func (fd *Director) GetTensionName() string {
 	fd.mutex.RLock()
 	defer fd.mutex.RUnlock()
 
@@ -381,7 +381,7 @@ func (fd *FearDirector) GetTensionName() string {
 }
 
 // GetTensionValue returns the current continuous tension value
-func (fd *FearDirector) GetTensionValue() float64 {
+func (fd *Director) GetTensionValue() float64 {
 	fd.mutex.RLock()
 	defer fd.mutex.RUnlock()
 
@@ -389,7 +389,7 @@ func (fd *FearDirector) GetTensionValue() float64 {
 }
 
 // GetBehaviorProfile returns the current behavior profile
-func (fd *FearDirector) GetBehaviorProfile() *BehaviorProfile {
+func (fd *Director) GetBehaviorProfile() *BehaviorProfile {
 	fd.mutex.RLock()
 	defer fd.mutex.RUnlock()
 
@@ -397,7 +397,7 @@ func (fd *FearDirector) GetBehaviorProfile() *BehaviorProfile {
 }
 
 // GetFearProfile returns the current fear profile
-func (fd *FearDirector) GetFearProfile() *FearProfile {
+func (fd *Director) GetFearProfile() *FearProfile {
 	fd.mutex.RLock()
 	defer fd.mutex.RUnlock()
 
@@ -405,7 +405,7 @@ func (fd *FearDirector) GetFearProfile() *FearProfile {
 }
 
 // SetTensionTarget sets the target tension level
-func (fd *FearDirector) SetTensionTarget(target float64) {
+func (fd *Director) SetTensionTarget(target float64) {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -414,7 +414,7 @@ func (fd *FearDirector) SetTensionTarget(target float64) {
 }
 
 // ForceScare forces a specific type of scare to happen
-func (fd *FearDirector) ForceScare(scareType string) bool {
+func (fd *Director) ForceScare(scareType string) bool {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -434,7 +434,7 @@ func (fd *FearDirector) ForceScare(scareType string) bool {
 }
 
 // SetScareInterval sets the base interval between scares
-func (fd *FearDirector) SetScareInterval(seconds float64) {
+func (fd *Director) SetScareInterval(seconds float64) {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -442,7 +442,7 @@ func (fd *FearDirector) SetScareInterval(seconds float64) {
 }
 
 // SaveProfiles saves the behavior and fear profiles
-func (fd *FearDirector) SaveProfiles() error {
+func (fd *Director) SaveProfiles() error {
 	fd.mutex.RLock()
 	defer fd.mutex.RUnlock()
 
@@ -480,7 +480,7 @@ func (fd *FearDirector) SaveProfiles() error {
 }
 
 // LoadProfiles loads behavior and fear profiles from files
-func (fd *FearDirector) LoadProfiles() error {
+func (fd *Director) LoadProfiles() error {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -526,7 +526,7 @@ func (fd *FearDirector) LoadProfiles() error {
 }
 
 // LoadScareTemplates loads scare templates from files
-func (fd *FearDirector) LoadScareTemplates() error {
+func (fd *Director) LoadScareTemplates() error {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -570,7 +570,7 @@ func (fd *FearDirector) LoadScareTemplates() error {
 }
 
 // CreateDefaultScareTemplates creates a set of default scare templates
-func (fd *FearDirector) CreateDefaultScareTemplates() error {
+func (fd *Director) CreateDefaultScareTemplates() error {
 	templatesPath := filepath.Join(fd.savePath, "scare_templates")
 
 	// Create directory if it doesn't exist
@@ -754,7 +754,7 @@ func (fd *FearDirector) CreateDefaultScareTemplates() error {
 }
 
 // trackPlayer finds and tracks the player's entity
-func (fd *FearDirector) trackPlayer() {
+func (fd *Director) trackPlayer() {
 	// Find player entity if not already tracked
 	if fd.playerID == "" {
 		playerEntities := fd.world.GetEntitiesWithTag("player")
@@ -785,7 +785,7 @@ func (fd *FearDirector) trackPlayer() {
 }
 
 // updateTension updates the tension curve
-func (fd *FearDirector) updateTension(deltaTime float64) {
+func (fd *Director) updateTension(deltaTime float64) {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -848,7 +848,7 @@ func (fd *FearDirector) updateTension(deltaTime float64) {
 }
 
 // analyzePlayerBehavior performs analysis on recorded player actions
-func (fd *FearDirector) analyzePlayerBehavior() {
+func (fd *Director) analyzePlayerBehavior() {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -1011,7 +1011,7 @@ func (fd *FearDirector) analyzePlayerBehavior() {
 }
 
 // analyzeScareResponse analyzes the player's response to a scare
-func (fd *FearDirector) analyzeScareResponse(action PlayerAction) {
+func (fd *Director) analyzeScareResponse(action PlayerAction) {
 	// Look for recent scares that might have caused this response
 	recentScareTime := 10.0 // Look for scares in last 10 seconds
 
@@ -1071,7 +1071,7 @@ func (fd *FearDirector) analyzeScareResponse(action PlayerAction) {
 }
 
 // identifyScareOpportunities looks for good opportunities to scare the player
-func (fd *FearDirector) identifyScareOpportunities() {
+func (fd *Director) identifyScareOpportunities() {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -1139,7 +1139,7 @@ func (fd *FearDirector) identifyScareOpportunities() {
 }
 
 // triggerScares triggers scare events when appropriate
-func (fd *FearDirector) triggerScares() {
+func (fd *Director) triggerScares() {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -1218,7 +1218,7 @@ func (fd *FearDirector) triggerScares() {
 }
 
 // updateActiveScares updates all currently active scares
-func (fd *FearDirector) updateActiveScares(deltaTime float64) {
+func (fd *Director) updateActiveScares(deltaTime float64) {
 	fd.mutex.Lock()
 	defer fd.mutex.Unlock()
 
@@ -1243,7 +1243,7 @@ func (fd *FearDirector) updateActiveScares(deltaTime float64) {
 }
 
 // generateScareFromTemplate creates a scare event from a template
-func (fd *FearDirector) generateScareFromTemplate(template *ScareEvent, position ecs.Vector3) *ScareEvent {
+func (fd *Director) generateScareFromTemplate(template *ScareEvent, position ecs.Vector3) *ScareEvent {
 	// Create a copy of the template
 	scare := *template
 
@@ -1283,7 +1283,7 @@ func (fd *FearDirector) generateScareFromTemplate(template *ScareEvent, position
 }
 
 // triggerScare triggers a specific scare event
-func (fd *FearDirector) triggerScare(scare *ScareEvent) {
+func (fd *Director) triggerScare(scare *ScareEvent) {
 	// Add to current scares
 	fd.currentScares[scare.ID] = scare
 
@@ -1306,7 +1306,7 @@ func (fd *FearDirector) triggerScare(scare *ScareEvent) {
 // Helper methods for generating scare opportunities
 
 // addAmbientScareOpportunity adds an ambient scare opportunity
-func (fd *FearDirector) addAmbientScareOpportunity() {
+func (fd *Director) addAmbientScareOpportunity() {
 	// Base value depends on tension level
 	value := 0.3 + float64(fd.tensionLevel)*0.1
 
@@ -1341,7 +1341,7 @@ func (fd *FearDirector) addAmbientScareOpportunity() {
 }
 
 // addEntityScareOpportunity adds an entity-based scare opportunity
-func (fd *FearDirector) addEntityScareOpportunity() {
+func (fd *Director) addEntityScareOpportunity() {
 	// Entity scares are more impactful
 	value := 0.5 + float64(fd.tensionLevel)*0.1
 
@@ -1367,7 +1367,7 @@ func (fd *FearDirector) addEntityScareOpportunity() {
 }
 
 // addChaseScare adds a scare opportunity during chase
-func (fd *FearDirector) addChaseScare() {
+func (fd *Director) addChaseScare() {
 	// Chase enhancement is very effective at high tension
 	value := 0.6 + float64(fd.tensionLevel)*0.1
 
@@ -1387,7 +1387,7 @@ func (fd *FearDirector) addChaseScare() {
 }
 
 // addHidingScareOpportunity adds a scare for when player is hiding
-func (fd *FearDirector) addHidingScareOpportunity() {
+func (fd *Director) addHidingScareOpportunity() {
 	// Base value
 	value := 0.4 + float64(fd.tensionLevel)*0.1
 
@@ -1412,7 +1412,7 @@ func (fd *FearDirector) addHidingScareOpportunity() {
 }
 
 // addInspectionScareOpportunity adds a scare when player is inspecting something
-func (fd *FearDirector) addInspectionScareOpportunity() {
+func (fd *Director) addInspectionScareOpportunity() {
 	// Good for jump scares or sudden events
 	value := 0.5 + float64(fd.tensionLevel)*0.1
 
@@ -1432,7 +1432,7 @@ func (fd *FearDirector) addInspectionScareOpportunity() {
 }
 
 // addRestingScareOpportunity adds a scare when player is resting
-func (fd *FearDirector) addRestingScareOpportunity() {
+func (fd *Director) addRestingScareOpportunity() {
 	// Subtle build-up
 	value := 0.3 + float64(fd.tensionLevel)*0.1
 
@@ -1452,7 +1452,7 @@ func (fd *FearDirector) addRestingScareOpportunity() {
 }
 
 // addMetamorphosisOpportunity adds an opportunity for a metamorphosis scare
-func (fd *FearDirector) addMetamorphosisOpportunity() {
+func (fd *Director) addMetamorphosisOpportunity() {
 	// Metamorphosis scares are rare and powerful
 	value := 0.7 + float64(fd.tensionLevel)*0.1
 

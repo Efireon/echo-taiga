@@ -290,7 +290,7 @@ func (as *AISystem) handleChaseState(ai *ecs.AIComponent, transform *ecs.Transfo
 	)
 
 	// Если цель в зоне атаки, атакуем
-	if transform.Position.Distance(target) <= ai.AttackRange {
+	if transform.Position.Distance(*target) <= ai.AttackRange {
 		ai.SetState("attack")
 	}
 }
@@ -308,16 +308,6 @@ func (as *AISystem) handleAttackState(ai *ecs.AIComponent, transform *ecs.Transf
 	}
 }
 
-func (as *AISystem) findNearestTarget(ai *ecs.AIComponent, transform *ecs.TransformComponent) *ecs.Vector3 {
-	// TODO: Реализовать поиск ближайшей цели в радиусе обнаружения
-	return nil
-}
-
-func (as *AISystem) findNearestThreat(ai *ecs.AIComponent, transform *ecs.TransformComponent) *ecs.Vector3 {
-	// TODO: Реализовать поиск ближайшей угрозы в радиусе обнаружения
-	return nil
-}
-
 func (as *AISystem) handleFleeState(ai *ecs.AIComponent, transform *ecs.TransformComponent, deltaTime float64) {
 	// Ищем ближайшую угрозу
 	threat := as.findNearestThreat(ai, transform)
@@ -329,7 +319,7 @@ func (as *AISystem) handleFleeState(ai *ecs.AIComponent, transform *ecs.Transfor
 	}
 
 	// Направление от угрозы
-	direction := transform.Position.Sub(threat).Normalize()
+	direction := transform.Position.Sub(*threat).Normalize()
 
 	// Быстрое движение от угрозы
 	transform.Position = transform.Position.Add(

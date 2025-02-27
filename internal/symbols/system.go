@@ -103,8 +103,8 @@ type RitualEffect struct {
 	ItemModifiers map[string]float64 // Modifiers to apply to the item
 }
 
-// SymbolRegistry manages all symbols in the game
-type SymbolRegistry struct {
+// Registry manages all symbols in the game
+type Registry struct {
 	symbols           map[string]*Symbol // All symbols by ID
 	discoveredSymbols map[string]*Symbol // Only discovered symbols
 
@@ -168,14 +168,14 @@ type RitualRegistry struct {
 	savePath string // Path for saving/loading data
 
 	// Symbol reference (needed for ritual generation)
-	symbolRegistry *SymbolRegistry
+	Registry *Registry
 
 	mutex sync.RWMutex // Mutex for thread safety
 }
 
-// SymbolManager ties together the symbol and ritual systems
-type SymbolManager struct {
-	SymbolRegistry *SymbolRegistry // Registry of all symbols
+// Manager ties together the symbol and ritual systems
+type Manager struct {
+	Registry       *Registry       // Registry of all symbols
 	RitualRegistry *RitualRegistry // Registry of all rituals
 
 	world *ecs.World // Reference to the ECS world
@@ -192,9 +192,9 @@ type SymbolManager struct {
 	mutex sync.RWMutex // Mutex for thread safety
 }
 
-// NewSymbolRegistry creates a new symbol registry
-func NewSymbolRegistry(savePath string) *SymbolRegistry {
-	return &SymbolRegistry{
+// NewRegistry creates a new symbol registry
+func NewRegistry(savePath string) *Registry {
+	return &Registry{
 		symbols:           make(map[string]*Symbol),
 		discoveredSymbols: make(map[string]*Symbol),
 		symbolsByType:     make(map[string][]*Symbol),
@@ -206,7 +206,7 @@ func NewSymbolRegistry(savePath string) *SymbolRegistry {
 }
 
 // NewRitualRegistry creates a new ritual registry
-func NewRitualRegistry(savePath string, symbolRegistry *SymbolRegistry) *RitualRegistry {
+func NewRitualRegistry(savePath string, Registry *Registry) *RitualRegistry {
 	return &RitualRegistry{
 		rituals:            make(map[string]*Ritual),
 		discoveredRituals:  make(map[string]*Ritual),
@@ -216,17 +216,17 @@ func NewRitualRegistry(savePath string, symbolRegistry *SymbolRegistry) *RitualR
 		effectTemplates:    make(map[string]RitualEffect),
 		ritualEvolutionMap: make(map[string][]string),
 		savePath:           savePath,
-		symbolRegistry:     symbolRegistry,
+		Registry:           Registry,
 	}
 }
 
-// NewSymbolManager creates a new symbol manager
-func NewSymbolManager(world *ecs.World, savePath string) *SymbolManager {
-	symbolRegistry := NewSymbolRegistry(filepath.Join(savePath, "symbols"))
-	ritualRegistry := NewRitualRegistry(filepath.Join(savePath, "rituals"), symbolRegistry)
+// NewManager creates a new symbol manager
+func NewManager(world *ecs.World, savePath string) *Manager {
+	Registry := NewRegistry(filepath.Join(savePath, "symbols"))
+	ritualRegistry := NewRitualRegistry(filepath.Join(savePath, "rituals"), Registry)
 
-	return &SymbolManager{
-		SymbolRegistry:  symbolRegistry,
+	return &Manager{
+		Registry:        Registry,
 		RitualRegistry:  ritualRegistry,
 		world:           world,
 		playerKnowledge: make(map[string]float64),
@@ -235,9 +235,9 @@ func NewSymbolManager(world *ecs.World, savePath string) *SymbolManager {
 }
 
 // Initialize initializes the symbol manager
-func (sm *SymbolManager) Initialize() error {
+func (sm *Manager) Initialize() error {
 	// Load base symbols and patterns
-	err := sm.SymbolRegistry.LoadBaseSymbols()
+	err := sm.Registry.LoadBaseSymbols()
 	if err != nil {
 		return fmt.Errorf("failed to load base symbols: %v", err)
 	}
@@ -262,9 +262,9 @@ func (sm *SymbolManager) Initialize() error {
 }
 
 // LoadState loads the saved state of the symbol manager
-func (sm *SymbolManager) LoadState() error {
+func (sm *Manager) LoadState() error {
 	// Try to load symbols
-	err := sm.SymbolRegistry.LoadState()
+	err := sm.Registry.LoadState()
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (sm *SymbolManager) LoadState() error {
 	}
 
 	// Load player knowledge
-	knowledgePath := filepath.Join(sm.SymbolRegistry.savePath, "player_knowledge.json")
+	knowledgePath := filepath.Join(sm.Registry.savePath, "player_knowledge.json")
 	if _, err := os.Stat(knowledgePath); os.IsNotExist(err) {
 		return fmt.Errorf("player knowledge file does not exist")
 	}
@@ -295,9 +295,9 @@ func (sm *SymbolManager) LoadState() error {
 }
 
 // SaveState saves the current state of the symbol manager
-func (sm *SymbolManager) SaveState() error {
+func (sm *Manager) SaveState() error {
 	// Save symbols
-	err := sm.SymbolRegistry.SaveState()
+	err := sm.Registry.SaveState()
 	if err != nil {
 		return err
 	}
@@ -309,7 +309,7 @@ func (sm *SymbolManager) SaveState() error {
 	}
 
 	// Save player knowledge
-	knowledgePath := filepath.Join(sm.SymbolRegistry.savePath, "player_knowledge.json")
+	knowledgePath := filepath.Join(sm.Registry.savePath, "player_knowledge.json")
 
 	// Make sure directory exists
 	dir := filepath.Dir(knowledgePath)
@@ -335,12 +335,12 @@ func (sm *SymbolManager) SaveState() error {
 }
 
 // GenerateInitialContent generates the initial symbols and rituals
-func (sm *SymbolManager) GenerateInitialContent() {
+func (sm *Manager) GenerateInitialContent() {
 	// Generate symbols based on base templates
-	for _, baseSymbol := range sm.SymbolRegistry.baseSymbols {
+	for _, baseSymbol := range sm.Registry.baseSymbols {
 		for i := 0; i < 3; i++ { // Generate a few variations of each base symbol
 			symbol := sm.GenerateSymbol(baseSymbol.SymbolType, i)
-			sm.SymbolRegistry.AddSymbol(symbol)
+			sm.Registry.AddSymbol(symbol)
 		}
 	}
 
@@ -352,10 +352,10 @@ func (sm *SymbolManager) GenerateInitialContent() {
 }
 
 // GenerateSymbol creates a new procedurally generated symbol
-func (sm *SymbolManager) GenerateSymbol(symbolType string, seed int) *Symbol {
+func (sm *Manager) GenerateSymbol(symbolType string, seed int) *Symbol {
 	// Get a base symbol of the specified type as a template
 	var baseSymbol *Symbol
-	for _, s := range sm.SymbolRegistry.baseSymbols {
+	for _, s := range sm.Registry.baseSymbols {
 		if s.SymbolType == symbolType {
 			baseSymbol = s
 			break
@@ -364,9 +364,8 @@ func (sm *SymbolManager) GenerateSymbol(symbolType string, seed int) *Symbol {
 
 	if baseSymbol == nil {
 		// Fall back to any base symbol if the specified type isn't found
-		if len(sm.SymbolRegistry.baseSymbols) > 0 {
-			1
-			baseSymbol = sm.SymbolRegistry.baseSymbols[0]
+		if len(sm.Registry.baseSymbols) > 0 {
+			baseSymbol = sm.Registry.baseSymbols[0]
 		} else {
 			// Create a minimal base symbol if none exist
 			baseSymbol = &Symbol{
@@ -455,12 +454,12 @@ func (sm *SymbolManager) GenerateSymbol(symbolType string, seed int) *Symbol {
 }
 
 // GenerateRitual creates a new procedurally generated ritual
-func (sm *SymbolManager) GenerateRitual(baseRitual *Ritual) *Ritual {
+func (sm *Manager) GenerateRitual(baseRitual *Ritual) *Ritual {
 	// Get available symbols to use in the ritual
-	availableSymbols := sm.SymbolRegistry.GetSymbolsByType(baseRitual.RequiredLocation)
+	availableSymbols := sm.Registry.GetSymbolsByType(baseRitual.RequiredLocation)
 	if len(availableSymbols) == 0 {
 		// Fall back to all symbols if none match the location
-		availableSymbols = sm.SymbolRegistry.GetAllSymbols()
+		availableSymbols = sm.Registry.GetAllSymbols()
 	}
 
 	if len(availableSymbols) == 0 {
@@ -502,7 +501,7 @@ func (sm *SymbolManager) GenerateRitual(baseRitual *Ritual) *Ritual {
 	namePrefix := nameAdjectives[r.Intn(len(nameAdjectives))]
 
 	// Base the name on the primary symbol
-	primarySymbol := sm.SymbolRegistry.GetSymbol(requiredSymbols[0])
+	primarySymbol := sm.Registry.GetSymbol(requiredSymbols[0])
 	ritualName := fmt.Sprintf("%s of %s", namePrefix, generateRitualNameSuffix(primarySymbol, r))
 
 	// Generate description
@@ -549,7 +548,7 @@ func (sm *SymbolManager) GenerateRitual(baseRitual *Ritual) *Ritual {
 	// Calculate total power of the symbols
 	totalPower := 0.0
 	for _, symbolID := range requiredSymbols {
-		symbol := sm.SymbolRegistry.GetSymbol(symbolID)
+		symbol := sm.Registry.GetSymbol(symbolID)
 		if symbol != nil {
 			totalPower += symbol.Power
 		}
@@ -599,12 +598,12 @@ func (sm *SymbolManager) GenerateRitual(baseRitual *Ritual) *Ritual {
 }
 
 // RequiredComponents returns the components required by this system
-func (sm *SymbolManager) RequiredComponents() []ecs.ComponentID {
+func (sm *Manager) RequiredComponents() []ecs.ComponentID {
 	return []ecs.ComponentID{ecs.SymbolComponentID}
 }
 
 // Update is called once per frame
-func (sm *SymbolManager) Update(deltaTime float64) {
+func (sm *Manager) Update(deltaTime float64) {
 	// Check for nearby symbols that the player can discover
 	// Only check every 0.5 seconds to avoid performance issues
 	if time.Since(sm.lastRitualCheck) < 500*time.Millisecond {
@@ -650,7 +649,7 @@ func (sm *SymbolManager) Update(deltaTime float64) {
 			symbol.Discovered = true
 
 			// Get the registered symbol
-			regSymbol := sm.SymbolRegistry.GetSymbol(symbol.SymbolID)
+			regSymbol := sm.Registry.GetSymbol(symbol.SymbolID)
 			if regSymbol != nil {
 				sm.DiscoverSymbol(regSymbol, playerPos)
 			}
@@ -662,7 +661,7 @@ func (sm *SymbolManager) Update(deltaTime float64) {
 }
 
 // DiscoverSymbol marks a symbol as discovered by the player
-func (sm *SymbolManager) DiscoverSymbol(symbol *Symbol, location ecs.Vector3) {
+func (sm *Manager) DiscoverSymbol(symbol *Symbol, location ecs.Vector3) {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 
@@ -678,7 +677,7 @@ func (sm *SymbolManager) DiscoverSymbol(symbol *Symbol, location ecs.Vector3) {
 	symbol.KnowledgeLevel = 0.1 // Initial understanding
 
 	// Add to discovered symbols
-	sm.SymbolRegistry.discoveredSymbols[symbol.ID] = symbol
+	sm.Registry.discoveredSymbols[symbol.ID] = symbol
 
 	// Initialize knowledge level
 	sm.playerKnowledge[symbol.ID] = 0.1
@@ -693,7 +692,7 @@ func (sm *SymbolManager) DiscoverSymbol(symbol *Symbol, location ecs.Vector3) {
 }
 
 // PerformRitual attempts to perform a ritual
-func (sm *SymbolManager) PerformRitual(ritual *Ritual, location ecs.Vector3, items []string, playerSkill float64) (bool, []RitualEffect) {
+func (sm *Manager) PerformRitual(ritual *Ritual, location ecs.Vector3, items []string, playerSkill float64) (bool, []RitualEffect) {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 
@@ -768,7 +767,7 @@ func (sm *SymbolManager) PerformRitual(ritual *Ritual, location ecs.Vector3, ite
 }
 
 // GetKnowledgeLevel returns the player's knowledge level for a symbol or ritual
-func (sm *SymbolManager) GetKnowledgeLevel(id string) float64 {
+func (sm *Manager) GetKnowledgeLevel(id string) float64 {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
 
@@ -780,7 +779,7 @@ func (sm *SymbolManager) GetKnowledgeLevel(id string) float64 {
 }
 
 // IncreaseKnowledge increases the player's knowledge of a symbol or ritual
-func (sm *SymbolManager) IncreaseKnowledge(id string, amount float64) {
+func (sm *Manager) IncreaseKnowledge(id string, amount float64) {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 
@@ -797,7 +796,7 @@ func (sm *SymbolManager) IncreaseKnowledge(id string, amount float64) {
 	sm.playerKnowledge[id] = newLevel
 
 	// Update symbol or ritual
-	if symbol := sm.SymbolRegistry.GetSymbol(id); symbol != nil {
+	if symbol := sm.Registry.GetSymbol(id); symbol != nil {
 		symbol.KnowledgeLevel = newLevel
 	} else if ritual := sm.RitualRegistry.GetRitual(id); ritual != nil {
 		ritual.KnowledgeLevel = newLevel
@@ -808,7 +807,7 @@ func (sm *SymbolManager) IncreaseKnowledge(id string, amount float64) {
 }
 
 // EvolveRitual evolves a ritual into a more advanced form
-func (sm *SymbolManager) EvolveRitual(ritual *Ritual) {
+func (sm *Manager) EvolveRitual(ritual *Ritual) {
 	// Check if ritual can evolve
 	if len(ritual.EvolutionPath) == 0 {
 		return
@@ -846,7 +845,7 @@ func (sm *SymbolManager) EvolveRitual(ritual *Ritual) {
 }
 
 // GenerateEvolvedRitual creates an evolved version of a ritual
-func (sm *SymbolManager) GenerateEvolvedRitual(baseRitual *Ritual) *Ritual {
+func (sm *Manager) GenerateEvolvedRitual(baseRitual *Ritual) *Ritual {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// Create unique ID
@@ -873,7 +872,7 @@ func (sm *SymbolManager) GenerateEvolvedRitual(baseRitual *Ritual) *Ritual {
 
 	// 50% chance to add another symbol
 	if r.Float64() < 0.5 {
-		availableSymbols := sm.SymbolRegistry.GetAllSymbols()
+		availableSymbols := sm.Registry.GetAllSymbols()
 		if len(availableSymbols) > len(evolvedSymbols) {
 			// Find a symbol that's not already included
 			for _, symbol := range availableSymbols {
@@ -929,7 +928,7 @@ func (sm *SymbolManager) GenerateEvolvedRitual(baseRitual *Ritual) *Ritual {
 		// Calculate average power of the symbols
 		totalPower := 0.0
 		for _, symbolID := range evolvedSymbols {
-			symbol := sm.SymbolRegistry.GetSymbol(symbolID)
+			symbol := sm.Registry.GetSymbol(symbolID)
 			if symbol != nil {
 				totalPower += symbol.Power
 			}
@@ -978,7 +977,7 @@ func (sm *SymbolManager) GenerateEvolvedRitual(baseRitual *Ritual) *Ritual {
 }
 
 // checkForRitualDiscoveries checks if the player has discovered enough symbols to learn new rituals
-func (sm *SymbolManager) checkForRitualDiscoveries() {
+func (sm *Manager) checkForRitualDiscoveries() {
 	// Get all undiscovered rituals
 	undiscoveredRituals := sm.RitualRegistry.GetUndiscoveredRituals()
 
@@ -988,7 +987,7 @@ func (sm *SymbolManager) checkForRitualDiscoveries() {
 		totalKnowledge := 0.0
 
 		for _, symbolID := range ritual.RequiredSymbols {
-			symbol := sm.SymbolRegistry.GetSymbol(symbolID)
+			symbol := sm.Registry.GetSymbol(symbolID)
 			if symbol == nil || !symbol.IsDiscovered {
 				canDiscover = false
 				break
@@ -1017,9 +1016,9 @@ func (sm *SymbolManager) checkForRitualDiscoveries() {
 }
 
 // updateSymbolKnowledge updates the knowledge levels based on study and usage
-func (sm *SymbolManager) updateSymbolKnowledge(deltaTime float64) {
+func (sm *Manager) updateSymbolKnowledge(deltaTime float64) {
 	// Get all discovered symbols
-	discoveredSymbols := sm.SymbolRegistry.GetDiscoveredSymbols()
+	discoveredSymbols := sm.Registry.GetDiscoveredSymbols()
 
 	// Get all discovered rituals
 	discoveredRituals := sm.RitualRegistry.GetDiscoveredRituals()
@@ -1044,7 +1043,7 @@ func (sm *SymbolManager) updateSymbolKnowledge(deltaTime float64) {
 // Helper functions for symbol registry
 
 // LoadBaseSymbols loads base symbols from files
-func (sr *SymbolRegistry) LoadBaseSymbols() error {
+func (sr *Registry) LoadBaseSymbols() error {
 	basePath := filepath.Join(sr.savePath, "base")
 
 	// Create directory if it doesn't exist
@@ -1161,7 +1160,7 @@ func (sr *SymbolRegistry) LoadBaseSymbols() error {
 }
 
 // CreateDefaultBaseSymbols creates default base symbols
-func (sr *SymbolRegistry) CreateDefaultBaseSymbols(basePath string) error {
+func (sr *Registry) CreateDefaultBaseSymbols(basePath string) error {
 	// Create base symbols for different types
 	baseSymbols := []Symbol{
 		{
@@ -1256,7 +1255,7 @@ func (sr *SymbolRegistry) CreateDefaultBaseSymbols(basePath string) error {
 }
 
 // CreateDefaultPatterns creates default symbol patterns
-func (sr *SymbolRegistry) CreateDefaultPatterns(patternsPath string) error {
+func (sr *Registry) CreateDefaultPatterns(patternsPath string) error {
 	// Create base patterns
 	patterns := []SymbolPattern{
 		{
@@ -1390,7 +1389,7 @@ func (sr *SymbolRegistry) CreateDefaultPatterns(patternsPath string) error {
 }
 
 // CreateDefaultMeanings creates default meaning groups
-func (sr *SymbolRegistry) CreateDefaultMeanings(meaningsPath string) error {
+func (sr *Registry) CreateDefaultMeanings(meaningsPath string) error {
 	// Create meaning groups
 	meanings := map[string][]string{
 		"elemental": {"fire", "water", "earth", "air", "lightning", "ice", "metal", "wood"},
@@ -1425,7 +1424,7 @@ func (sr *SymbolRegistry) CreateDefaultMeanings(meaningsPath string) error {
 }
 
 // LoadState loads the state of the symbol registry
-func (sr *SymbolRegistry) LoadState() error {
+func (sr *Registry) LoadState() error {
 	sr.mutex.Lock()
 	defer sr.mutex.Unlock()
 
@@ -1473,7 +1472,7 @@ func (sr *SymbolRegistry) LoadState() error {
 }
 
 // SaveState saves the state of the symbol registry
-func (sr *SymbolRegistry) SaveState() error {
+func (sr *Registry) SaveState() error {
 	sr.mutex.RLock()
 	defer sr.mutex.RUnlock()
 
@@ -1509,7 +1508,7 @@ func (sr *SymbolRegistry) SaveState() error {
 }
 
 // AddSymbol adds a symbol to the registry
-func (sr *SymbolRegistry) AddSymbol(symbol *Symbol) {
+func (sr *Registry) AddSymbol(symbol *Symbol) {
 	sr.mutex.Lock()
 	defer sr.mutex.Unlock()
 
@@ -1528,7 +1527,7 @@ func (sr *SymbolRegistry) AddSymbol(symbol *Symbol) {
 }
 
 // GetSymbol returns a symbol by ID
-func (sr *SymbolRegistry) GetSymbol(id string) *Symbol {
+func (sr *Registry) GetSymbol(id string) *Symbol {
 	sr.mutex.RLock()
 	defer sr.mutex.RUnlock()
 
@@ -1536,7 +1535,7 @@ func (sr *SymbolRegistry) GetSymbol(id string) *Symbol {
 }
 
 // GetAllSymbols returns all symbols
-func (sr *SymbolRegistry) GetAllSymbols() []*Symbol {
+func (sr *Registry) GetAllSymbols() []*Symbol {
 	sr.mutex.RLock()
 	defer sr.mutex.RUnlock()
 
@@ -1549,7 +1548,7 @@ func (sr *SymbolRegistry) GetAllSymbols() []*Symbol {
 }
 
 // GetDiscoveredSymbols returns all discovered symbols
-func (sr *SymbolRegistry) GetDiscoveredSymbols() []*Symbol {
+func (sr *Registry) GetDiscoveredSymbols() []*Symbol {
 	sr.mutex.RLock()
 	defer sr.mutex.RUnlock()
 
@@ -1562,7 +1561,7 @@ func (sr *SymbolRegistry) GetDiscoveredSymbols() []*Symbol {
 }
 
 // GetSymbolsByType returns symbols of a specific type
-func (sr *SymbolRegistry) GetSymbolsByType(symbolType string) []*Symbol {
+func (sr *Registry) GetSymbolsByType(symbolType string) []*Symbol {
 	sr.mutex.RLock()
 	defer sr.mutex.RUnlock()
 
