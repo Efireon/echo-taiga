@@ -1,0 +1,31 @@
+# Бинарные файлы
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+echo-taiga
+
+# Временные файлы
+*.tmp
+*.temp
+*.swp
+
+# Логи
+*.log
+
+# Директории
+/bin/
+/vendor/
+/generated/*
+!/generated/.gitkeep
+
+# Файлы IDE
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Файлы операционной системы
+.DS_Store
+Thumbs.db
