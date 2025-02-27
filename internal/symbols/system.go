@@ -41,68 +41,6 @@ type Symbol struct {
 	WorldEffects    map[string]float64 // Direct effects on the world when observed
 }
 
-// Ritual represents a magical ritual that can be performed using symbols
-type Ritual struct {
-	ID          string // Unique identifier
-	Name        string // Name of the ritual
-	Description string // Description of the ritual
-
-	// Components needed for the ritual
-	RequiredSymbols  []string // Symbols required for the ritual
-	RequiredItems    []string // Items required for the ritual
-	RequiredLocation string   // Type of location needed (e.g., "water", "forest", "cave")
-
-	// Execution information
-	Actions      []string // Sequence of actions to perform the ritual
-	Difficulty   float64  // 0-1: How difficult the ritual is to perform
-	TimeRequired float64  // Seconds required to complete the ritual
-
-	// Effects information
-	Effects        []RitualEffect // Effects produced by the ritual
-	SuccessChance  float64        // Base chance of success (0-1)
-	FailureEffects []RitualEffect // Effects if ritual fails
-
-	// Discovery and knowledge
-	IsDiscovered   bool    // Whether the player has discovered this ritual
-	KnowledgeLevel float64 // 0-1: Player's understanding of the ritual
-
-	// Ritual progression information
-	TimesPerformed  int       // How many times this ritual has been performed
-	TimesSucceeded  int       // How many times this ritual has succeeded
-	LastPerformTime time.Time // When the ritual was last performed
-
-	// Procedural generation parameters
-	GenerationSeed int64 // Seed used to generate this ritual
-
-	// Evolution information
-	EvolutionPath  []string // IDs of rituals that this can evolve into
-	ParentRitual   string   // ID of the ritual this evolved from
-	EvolutionLevel int      // How evolved this ritual is (0 = base ritual)
-}
-
-// RitualEffect represents an effect that a ritual can produce
-type RitualEffect struct {
-	Type        string   // Type of effect: "metamorphosis", "player", "item", "world", etc.
-	Target      string   // Target of the effect: specific entity, area, player stat, etc.
-	Value       float64  // Primary value/magnitude of the effect
-	Duration    float64  // Duration in seconds (0 = permanent)
-	Tags        []string // Tags describing the effect
-	Description string   // Description of what happens
-
-	// Spawning information (if effect spawns entities)
-	SpawnEntityType string  // Type of entity to spawn
-	SpawnCount      int     // Number of entities to spawn
-	SpawnRadius     float64 // Radius in which to spawn entities
-
-	// Metamorphosis information (if effect causes metamorphosis)
-	MetamorphOrder int     // Order level of the metamorphosis
-	MetamorphArea  float64 // Area of effect radius
-
-	// Item information (if effect creates/modifies items)
-	ItemID        string             // ID of the item to create/modify
-	ItemModifiers map[string]float64 // Modifiers to apply to the item
-}
-
 // Registry manages all symbols in the game
 type Registry struct {
 	symbols           map[string]*Symbol // All symbols by ID

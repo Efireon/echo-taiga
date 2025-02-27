@@ -54,10 +54,10 @@ func NewGame(cfg *config.Config) (*Game, error) {
 	}
 
 	// Создаем менеджер символов
-	symbolMgr := symbols.NewSymbolManager(ecsWorld, "saves/symbols")
-	err = symbolMgr.Initialize()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize symbol manager: %v", err)
+	symbolMgr := symbols.NewSymbolManager()
+	err = symbolMgr.Initialize(worldSeed)
+	if err := symbolMgr.Initialize(worldSeed); err != nil {
+		return nil, err
 	}
 
 	// Создаем менеджер страха

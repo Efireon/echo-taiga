@@ -831,7 +831,6 @@ func createRock(world *ecs.World, position ecs.Vector3, randomFactor float64) *e
 	// Добавляем физический компонент
 	physicsComp := ecs.NewPhysicsComponent(100, true)              // Тяжелый неподвижный объект
 	physicsComp.ColliderSize = ecs.Vector3{X: 1.0, Y: 1.0, Z: 1.0} // Размер коллайдера
-	tree.AddComponent(physicsComp)
 
 	// Добавляем метаморфный компонент с очень высокой стабильностью
 	metaComp := ecs.NewMetamorphicComponent(0.9) // Очень стабильны, редко меняются
@@ -1060,7 +1059,7 @@ func createNightCreature(world *ecs.World, position ecs.Vector3, anomalyLevel fl
 	creature.AddComponent(physicsComp)
 
 	// Компонент здоровья
-	healthComp := ecs.NewHealthComponent(50 + int(anomalyLevel*100))
+	healthComp := ecs.NewHealthComponent(float64(50 + int(anomalyLevel*100)))
 	creature.AddComponent(healthComp)
 
 	// Компонент ИИ

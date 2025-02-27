@@ -5,19 +5,6 @@ import (
 	"time"
 )
 
-// Symbol represents a discoverable occult symbol in the game world
-type Symbol struct {
-	ID                string
-	Category          string
-	VisualComplexity  float64
-	DiscoveryTime     int64
-	DiscoveryLocation [3]float64
-	PlayerKnowledge   float64
-	RelatedSymbols    []string
-	MeaningComponents []string
-	VisualData        string
-}
-
 // Ritual represents a ritual that can be performed with specific symbols and components
 type Ritual struct {
 	ID              string
