@@ -9,7 +9,6 @@ import (
 
 	"echo-taiga/internal/engine/ecs"
 	"echo-taiga/internal/metamorphosis"
-	"echo-taiga/internal/world/biomes"
 	"echo-taiga/internal/world/terrain"
 )
 
