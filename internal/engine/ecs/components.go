@@ -3,6 +3,7 @@ package ecs
 import (
 	"image/color"
 	"math"
+	"math/rand/v2"
 )
 
 // Предопределенные типы компонентов
@@ -297,7 +298,7 @@ func (m *MetamorphicComponent) CanMutate(metamorphStrength float64) bool {
 
 	// Вероятность мутации зависит от силы метаморфозы и стабильности сущности
 	mutationChance := metamorphStrength * (1.0 - m.Stability)
-	return math.Random() < mutationChance
+	return rand.Float64() < mutationChance
 }
 
 // ApplyMetamorphosis применяет метаморфозу к сущности
@@ -376,15 +377,16 @@ func (s *SurvivalComponent) GetSurvivalStatus() string {
 // SymbolComponent содержит информацию о символе (для системы ритуалов)
 type SymbolComponent struct {
 	BaseComponent
-	SymbolID       string
-	SymbolType     string
-	Complexity     float64  // 0-1: сложность символа
-	Power          float64  // 0-1: сила символа
-	Discovered     bool     // Обнаружен ли символ игроком
-	KnowledgeLevel float64  // 0-1: насколько хорошо игрок понимает символ
-	RelatedSymbols []string // Связанные символы
-	Meaning        []string // Набор значений символа
-	VisualData     string   // Ссылка на визуальное представление
+	SymbolID        string
+	SymbolType      string
+	Complexity      float64 // 0-1: сложность символа
+	Power           float64 // 0-1: сила символа
+	Discovered      bool    // Обнаружен ли символ игроком
+	DiscoveryRadius float64
+	KnowledgeLevel  float64  // 0-1: насколько хорошо игрок понимает символ
+	RelatedSymbols  []string // Связанные символы
+	Meaning         []string // Набор значений символа
+	VisualData      string   // Ссылка на визуальное представление
 }
 
 // NewSymbolComponent создает новый компонент символа
@@ -499,9 +501,8 @@ func (i *InventoryComponent) EquipItem(itemID EntityID, slot string) bool {
 	}
 
 	// Если в слоте уже есть предмет, снимаем его
-	if oldItemID, exists := i.Equipped[slot]; exists {
-		delete(i.Equipped, slot)
-	}
+
+	delete(i.Equipped, slot)
 
 	// Экипируем новый предмет
 	i.Equipped[slot] = itemID

@@ -9,6 +9,7 @@ import (
 
 	"echo-taiga/internal/engine/ecs"
 	"echo-taiga/internal/metamorphosis"
+	"echo-taiga/internal/world/biomes"
 	"echo-taiga/internal/world/terrain"
 )
 
@@ -75,6 +76,12 @@ func NewWorld(seed int64, ecsWorld *ecs.World) *World {
 	}
 
 	return world
+}
+
+func createNightCreature(world *ecs.World, position ecs.Vector3, anomalyLevel float64) *ecs.Entity {
+	// Преобразуйте значение здоровья
+	healthComp := ecs.NewHealthComponent(float64(50 + int(anomalyLevel*100)))
+	// Остальной код без изменений
 }
 
 // GetChunkAt возвращает чанк в указанной позиции

@@ -365,6 +365,7 @@ func (sm *SymbolManager) GenerateSymbol(symbolType string, seed int) *Symbol {
 	if baseSymbol == nil {
 		// Fall back to any base symbol if the specified type isn't found
 		if len(sm.SymbolRegistry.baseSymbols) > 0 {
+			1
 			baseSymbol = sm.SymbolRegistry.baseSymbols[0]
 		} else {
 			// Create a minimal base symbol if none exist

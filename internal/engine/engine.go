@@ -295,14 +295,27 @@ func (as *AISystem) handleChaseState(ai *ecs.AIComponent, transform *ecs.Transfo
 	}
 }
 
+// Исправьте типы и преобразования
 func (as *AISystem) handleAttackState(ai *ecs.AIComponent, transform *ecs.TransformComponent, deltaTime float64) {
 	// Проверяем, можем ли атаковать
-	if ai.CanAttack(time.Now().Unix()) {
-		damage := ai.Attack(time.Now().Unix())
+	currentTime := float64(time.Now().Unix())
+	if ai.CanAttack(currentTime) {
+		damage := ai.Attack(currentTime)
 
 		// TODO: Применение урона к цели
 		// здесь должна быть логика нанесения урона целевой сущности
+		_ = damage // Временно игнорируем неиспользуемую переменную
 	}
+}
+
+func (as *AISystem) findNearestTarget(ai *ecs.AIComponent, transform *ecs.TransformComponent) *ecs.Vector3 {
+	// TODO: Реализовать поиск ближайшей цели в радиусе обнаружения
+	return nil
+}
+
+func (as *AISystem) findNearestThreat(ai *ecs.AIComponent, transform *ecs.TransformComponent) *ecs.Vector3 {
+	// TODO: Реализовать поиск ближайшей угрозы в радиусе обнаружения
+	return nil
 }
 
 func (as *AISystem) handleFleeState(ai *ecs.AIComponent, transform *ecs.TransformComponent, deltaTime float64) {

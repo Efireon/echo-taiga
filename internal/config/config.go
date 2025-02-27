@@ -8,6 +8,44 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Добавьте определение структуры Config
+type Config struct {
+	WindowWidth       int
+	WindowHeight      int
+	Fullscreen        bool
+	Title             string
+	Seed              int64
+	Difficulty        string
+	WorldSize         string
+	MetamorphosisRate float64
+	TargetFPS         int
+	EnableVSync       bool
+	ChunkSize         int
+	ViewDistance      int
+	EnableShadows     bool
+	TextureQuality    int
+}
+
+// Добавьте функцию DefaultConfig()
+func DefaultConfig() *Config {
+	return &Config{
+		WindowWidth:       1280,
+		WindowHeight:      720,
+		Fullscreen:        false,
+		Title:             "Эхо Тайги",
+		Seed:              0, // Генерация случайного сида
+		Difficulty:        "normal",
+		WorldSize:         "medium",
+		MetamorphosisRate: 0.5,
+		TargetFPS:         60,
+		EnableVSync:       true,
+		ChunkSize:         64,
+		ViewDistance:      3,
+		EnableShadows:     true,
+		TextureQuality:    1,
+	}
+}
+
 // Load загружает конфигурацию из файла
 func Load() (*Config, error) {
 	// Создаем директорию для конфигурации, если она не существует

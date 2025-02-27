@@ -397,7 +397,15 @@ func (tl *SimpleTextureLoader) LoadTexture(filename string) (*ebiten.Image, erro
 	}
 
 	// Создаем текстуру Ebiten
-	texture := ebiten.NewImageFromImage(img)
+	// При создании текстуры добавьте второй параметр фильтра
+	texture := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+
+	// Используйте ключевые поля при создании Vector3
+	normal1 := ecs.Vector3{
+		X: v1.X * 2,
+		Y: v1.Y * 2,
+		Z: v1.Z * 2,
+	}.Normalize()
 
 	return texture, nil
 }
