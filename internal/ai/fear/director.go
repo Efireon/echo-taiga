@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yourusername/echo-taiga/internal/engine/ecs"
+	"echo-taiga/internal/engine/ecs"
 )
 
 // ActionType represents the type of action the player is performing

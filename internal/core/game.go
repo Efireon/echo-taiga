@@ -1,13 +1,13 @@
 package core
 
 import (
-	"github.com/yourusername/echo-taiga/internal/config"
-	"github.com/yourusername/echo-taiga/internal/engine"
-	"github.com/yourusername/echo-taiga/internal/world"
-	"github.com/yourusername/echo-taiga/internal/entities/player"
-	"github.com/yourusername/echo-taiga/internal/render"
-	"github.com/yourusername/echo-taiga/internal/audio"
-	"github.com/yourusername/echo-taiga/internal/ai/director"
+	"echo-taiga/internal/ai/director"
+	"echo-taiga/internal/audio"
+	"echo-taiga/internal/config"
+	"echo-taiga/internal/engine"
+	"echo-taiga/internal/entities/player"
+	"echo-taiga/internal/render"
+	"echo-taiga/internal/world"
 )
 
 // Game представляет основной класс игры
@@ -26,7 +26,7 @@ type Game struct {
 func NewGame(cfg *config.Config) (*Game, error) {
 	// TODO: инициализация компонентов игры
 	return &Game{
-		config: cfg,
+		config:    cfg,
 		isRunning: false,
 	}, nil
 }
@@ -34,9 +34,9 @@ func NewGame(cfg *config.Config) (*Game, error) {
 // Run запускает основной цикл игры
 func (g *Game) Run() error {
 	g.isRunning = true
-	
+
 	// TODO: реализовать игровой цикл
-	
+
 	return nil
 }
 

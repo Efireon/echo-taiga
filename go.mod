@@ -1,4 +1,4 @@
-module github.com/yourusername/echo-taiga
+module echo-taiga
 
 go 1.24.0
 

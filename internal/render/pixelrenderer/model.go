@@ -11,8 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"echo-taiga/internal/engine/ecs"
+
 	"github.com/hajimehoshi/ebiten"
-	"github.com/yourusername/echo-taiga/internal/engine/ecs"
 )
 
 // Vertex представляет вершину 3D-модели

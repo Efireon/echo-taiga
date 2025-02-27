@@ -1,8 +1,8 @@
 package rituals
 
 import (
-	"github.com/yourusername/echo-taiga/internal/symbols"
-	"github.com/yourusername/echo-taiga/internal/metamorphosis"
+	"echo-taiga/internal/metamorphosis"
+	"echo-taiga/internal/symbols"
 )
 
 // Компонент ритуала
@@ -13,22 +13,22 @@ type Component struct {
 
 // Эффект ритуала
 type Effect struct {
-	Type        string  // player_ability, metamorphosis, etc.
-	Target      string  // На что влияет
-	Value       float64 // Величина эффекта
-	Duration    int     // Длительность в секундах (0 = постоянно)
-	OrderLevel  int     // Для метаморфоз - порядок изменений
+	Type       string  // player_ability, metamorphosis, etc.
+	Target     string  // На что влияет
+	Value      float64 // Величина эффекта
+	Duration   int     // Длительность в секундах (0 = постоянно)
+	OrderLevel int     // Для метаморфоз - порядок изменений
 }
 
 // Ritual представляет ритуал, который может выполнить игрок
 type Ritual struct {
-	ID             string
-	Name           string
+	ID              string
+	Name            string
 	RequiredSymbols []symbols.Symbol
-	Components     []Component
-	Effects        []Effect
-	MasteryLevel   float64 // От 0 до 1, влияет на эффективность
-	SuccessChance  float64 // Базовый шанс успеха
+	Components      []Component
+	Effects         []Effect
+	MasteryLevel    float64 // От 0 до 1, влияет на эффективность
+	SuccessChance   float64 // Базовый шанс успеха
 }
 
 // Perform выполняет ритуал с указанными компонентами

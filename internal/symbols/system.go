@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yourusername/echo-taiga/internal/engine/ecs"
+	"echo-taiga/internal/engine/ecs"
 )
 
 // Symbol represents a mystical symbol that can be discovered and used in rituals

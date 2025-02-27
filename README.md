@@ -20,7 +20,7 @@
 
 ### Сборка из исходников
 ```bash
-git clone https://github.com/yourusername/echo-taiga.git
+git clone https://echo-taiga.git
 cd echo-taiga
 go build -o echo-taiga ./cmd/echo-taiga
 ```
